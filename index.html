@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Quick Vibe Check 🐾</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdf2f8; /* Soft pink pastel background */
+            color: #4a4a4a;
+            overflow: hidden; 
+            touch-action: manipulation;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 182, 193, 0.5);
+            box-shadow: 0 15px 35px rgba(244, 114, 182, 0.15);
+        }
+
+        /* Soft glowing text */
+        .neon-text {
+            background: linear-gradient(135deg, #f472b6, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Ambient animated blobs */
+        .ambient-glow {
+            position: fixed;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(244,114,182,0.15) 0%, rgba(255,255,255,0) 70%);
+            top: -20vw;
+            left: -20vw;
+            z-index: -1;
+            pointer-events: none;
+            animation: float 10s infinite alternate;
+        }
+        
+        .ambient-glow-2 {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(192,132,252,0.15) 0%, rgba(255,255,255,0) 70%);
+            bottom: -15vw;
+            right: -10vw;
+            z-index: -1;
+            pointer-events: none;
+            animation: float-reverse 12s infinite alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(30px) scale(1.1); }
+        }
+        @keyframes float-reverse {
+            0% { transform: translateY(0px) scale(1); }
+            100% { transform: translateY(-40px) scale(1.05); }
+        }
+
+        /* Input Fields */
+        input[type="text"] {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(244, 114, 182, 0.3);
+            color: #4a4a4a;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #f472b6;
+            box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.1);
+        }
+
+        /* Question Transitions */
+        .q-container {
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .q-hidden {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+        }
+        .q-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        /* The Aggressive Dodging Button */
+        .btn-dodge {
+            transition: left 0.1s linear, top 0.1s linear, transform 0.15s ease-out;
+            z-index: 1000;
+        }
+
+        .emoji-spin {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .btn-opt:hover .emoji-spin {
+            transform: rotate(15deg) scale(1.2);
+        }
+
+        /* Locked Vault Shake Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col items-center justify-center relative">
+
+    <div class="ambient-glow"></div>
+    <div class="ambient-glow-2"></div>
+
+    <!-- Discreet Locked Vault Button (PIN: 4444) -->
+    <button id="vault-lock-btn" onclick="openPinModal()" title="Secret Answers Vault" class="fixed top-4 right-4 z-40 p-2.5 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-md border border-pink-200 shadow-sm text-pink-400 hover:text-pink-600 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+    </button>
+
+    <!-- PIN Entry Modal (Password 4444) -->
+    <div id="pin-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+        <div class="glass-card rounded-3xl p-6 w-full max-w-xs text-center border border-pink-300 shadow-2xl transform transition-transform duration-300 scale-95" id="pin-card">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-2xl bg-pink-100 flex items-center justify-center text-pink-500 text-xl shadow-inner">
+                🔒
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-1">Locked Folder</h3>
+            <p class="text-xs text-gray-500 mb-4">Enter 4-digit PIN to access all saved answers</p>
+            
+            <!-- PIN dots -->
+            <div class="flex justify-center gap-3 mb-5" id="pin-dots">
+                <span class="w-3.5 h-3.5 rounded-full border-2 border-pink-300 bg-white transition-all"></span>
+                <span class="w-3.5 h-3.5 rounded-full border-2 border-pink-300 bg-white transition-all"></span>
+                <span class="w-3.5 h-3.5 rounded-full border-2 border-pink-300 bg-white transition-all"></span>
+                <span class="w-3.5 h-3.5 rounded-full border-2 border-pink-300 bg-white transition-all"></span>
+            </div>
+
+            <!-- PIN keypad -->
+            <div class="grid grid-cols-3 gap-2 mb-3">
+                <button onclick="pressPin('1')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">1</button>
+                <button onclick="pressPin('2')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">2</button>
+                <button onclick="pressPin('3')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">3</button>
+                <button onclick="pressPin('4')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">4</button>
+                <button onclick="pressPin('5')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">5</button>
+                <button onclick="pressPin('6')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">6</button>
+                <button onclick="pressPin('7')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">7</button>
+                <button onclick="pressPin('8')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">8</button>
+                <button onclick="pressPin('9')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">9</button>
+                <button onclick="closePinModal()" class="py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-gray-500 active:scale-95 transition">Cancel</button>
+                <button onclick="pressPin('0')" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 font-bold text-gray-700 active:scale-95 transition">0</button>
+                <button onclick="deletePin()" class="py-3 rounded-xl bg-pink-50/80 hover:bg-pink-100 text-sm font-bold text-gray-600 active:scale-95 transition">⌫</button>
+            </div>
+
+            <p id="pin-error" class="text-xs text-red-500 font-semibold h-4"></p>
+        </div>
+    </div>
+
+    <!-- Locked Answers Vault Dashboard Modal -->
+    <div id="vault-dashboard-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+        <div class="glass-card rounded-3xl p-6 w-full max-w-lg max-h-[88vh] flex flex-col border border-pink-300 shadow-2xl relative overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-3 border-b border-pink-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-400 to-purple-400 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                        🐾
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">Locked Answers Folder</h2>
+                        <span class="text-xs text-pink-500 font-semibold flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            Unlocked (PIN: 4444)
+                        </span>
+                    </div>
+                </div>
+                <button onclick="closeVaultDashboard()" class="w-8 h-8 rounded-full bg-pink-50 hover:bg-pink-100 text-gray-500 hover:text-gray-700 flex items-center justify-center text-sm font-bold transition">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex items-center justify-between py-2.5 text-xs text-gray-500 border-b border-pink-50">
+                <span id="vault-session-count" class="font-medium text-pink-600">0 Sessions Saved</span>
+                <div class="flex gap-2">
+                    <button onclick="exportVaultAsText()" class="px-3 py-1.5 rounded-lg bg-pink-100 hover:bg-pink-200 text-pink-700 font-semibold transition">
+                        📥 Export .txt
+                    </button>
+                    <button onclick="clearVaultHistory()" class="px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 font-semibold transition">
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sessions List -->
+            <div id="vault-sessions-list" class="flex-1 overflow-y-auto py-3 space-y-4 pr-1 text-left">
+                <!-- Session items rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div id="progress-container" class="absolute top-10 left-0 right-0 flex justify-center items-center gap-3 px-4 z-20 transition-opacity duration-500 opacity-0">
+        <span class="text-sm font-bold text-pink-500">Q<span id="current-q-num">1</span>/10</span>
+        <div class="w-48 h-2.5 bg-pink-100 rounded-full overflow-hidden shadow-inner">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-pink-400 to-purple-400 w-0 transition-all duration-500 ease-out"></div>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div class="relative w-full max-w-md px-6 z-10">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="glass-card rounded-3xl p-8 text-center q-container q-visible absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full mx-6 max-w-[calc(100%-3rem)]">
+            <div class="text-6xl mb-6 drop-shadow-md">🌸🐈</div>
+            <h1 class="text-3xl font-extrabold mb-3 neon-text">A Quick Vibe Check</h1>
+            <p class="text-gray-500 mb-8 text-sm font-medium leading-relaxed">
+                Just 10 highly scientific questions to analyze your personality (and shopping habits). Be honest.
+            </p>
+            <button id="start-btn" class="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-400 to-purple-500 font-bold text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                Start the Test 🐾
+            </button>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="quiz-container" class="glass-card rounded-3xl p-8 q-container q-hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full mx-6 max-w-[calc(100%-3rem)]">
+            <!-- Questions injected here -->
+        </div>
+
+    </div>
+
+    <!-- Desktop Folder & Firebase Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Desktop Server URL (connects whether opened via HTTP server or file://)
+        const API_BASE = (window.location.protocol.startsWith('http')) 
+            ? window.location.origin 
+            : 'http://localhost:3000';
+
+        // Local cache sync
+        function cacheAnswerLocally(questionId, questionText, answer, isCompleted = false, isDraft = false) {
+            try {
+                const stored = JSON.parse(localStorage.getItem('shruti_quiz_answers') || '{"answers":{}}');
+                if (!stored.answers) stored.answers = {};
+                stored.answers[questionId] = {
+                    question: questionText,
+                    answer: answer,
+                    timestamp: new Date().toISOString(),
+                    isDraft: isDraft
+                };
+                stored.lastUpdated = new Date().toISOString();
+                if (isCompleted) stored.status = 'completed';
+                localStorage.setItem('shruti_quiz_answers', JSON.stringify(stored));
+            } catch (e) {}
+        }
+
+        // Save directly to the desktop folder via background server
+        async function saveToDesktopServer(questionId, questionText, answer, isCompleted = false, isDraft = false) {
+            cacheAnswerLocally(questionId, questionText, answer, isCompleted, isDraft);
+            try {
+                await fetch(`${API_BASE}/api/save-answer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        questionId,
+                        questionText,
+                        answer,
+                        isCompleted,
+                        isDraft,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+            } catch (err) {
+                // If offline or server temporarily unavailable, stored locally
+            }
+        }
+
+        // Environment bindings for Firebase (if available)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-vibe-check';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app, auth, db, sessionDocRef = null, isFirebaseReady = false;
+
+        async function initTracking() {
+            if (!firebaseConfig) return;
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                isFirebaseReady = true;
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                const user = auth.currentUser;
+                if (user) {
+                    const responsesRef = collection(db, 'artifacts', appId, 'public', 'data', 'qna_sessions');
+                    sessionDocRef = await addDoc(responsesRef, {
+                        userId: user.uid,
+                        startedAt: new Date().toISOString(),
+                        status: 'in-progress',
+                        deviceInfo: navigator.userAgent,
+                        answers: {}
+                    });
+                }
+            } catch (error) {
+                console.warn("Silent tracking init failed:", error);
+            }
+        }
+
+        // ==========================================
+        // LOCKED ANSWERS VAULT (PASSWORD: 4444)
+        // ==========================================
+        const VAULT_PIN = '4444';
+        let currentSessionId = localStorage.getItem('shruti_active_session_id');
+
+        // Retrieve all past and current sessions from in-game vault storage
+        function getVaultSessions() {
+            try {
+                return JSON.parse(localStorage.getItem('shruti_vault_history') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveVaultSessions(sessions) {
+            try {
+                localStorage.setItem('shruti_vault_history', JSON.stringify(sessions));
+            } catch (e) {}
+        }
+
+        // Whenever anyone opens the game and writes/clicks an answer, it saves into the locked vault
+        window.initOrUpdateVaultSession = function(questionId, questionText, answer, isCompleted = false, isDraft = false) {
+            let sessions = getVaultSessions();
+            if (!currentSessionId) {
+                currentSessionId = 'session_' + Date.now();
+                localStorage.setItem('shruti_active_session_id', currentSessionId);
+            }
+
+            let session = sessions.find(s => s.id === currentSessionId);
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateStr = now.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+
+            if (!session) {
+                session = {
+                    id: currentSessionId,
+                    date: dateStr,
+                    startedAt: timeStr,
+                    lastActive: timeStr,
+                    status: 'in-progress',
+                    answers: {}
+                };
+                sessions.unshift(session);
+            }
+
+            session.lastActive = timeStr;
+            session.answers[questionId] = {
+                question: questionText,
+                answer: answer,
+                time: timeStr,
+                timestamp: now.toISOString(),
+                isDraft: isDraft
+            };
+
+            if (isCompleted) {
+                session.status = 'completed';
+                session.completedAt = timeStr;
+            }
+
+            saveVaultSessions(sessions);
+        };
+
+        // Global save answer function called on click or input
+        window.logAnswer = async function(questionId, questionText, answer, isCompleted = false, isDraft = false) {
+            // 1. Save directly into the Locked Vault inside the game (Password 4444)
+            window.initOrUpdateVaultSession(questionId, questionText, answer, isCompleted, isDraft);
+
+            // 2. Save to desktop folder if local server is active
+            saveToDesktopServer(questionId, questionText, answer, isCompleted, isDraft);
+
+            // 3. Also sync to Firebase if configured
+            if (isFirebaseReady && sessionDocRef && !isDraft) {
+                try {
+                    await setDoc(sessionDocRef, {
+                        answers: {
+                            [questionId]: {
+                                question: questionText,
+                                answer: answer,
+                                timestamp: new Date().toISOString()
+                            }
+                        },
+                        lastUpdated: new Date().toISOString()
+                    }, { merge: true });
+                } catch (error) {}
+            }
+        };
+
+        window.completeSession = async function() {
+            window.initOrUpdateVaultSession('q10', "I'm leaving on the 28th. Can I take you out before I go? ☕", 'Yes', true, false);
+            saveToDesktopServer('q10', "I'm leaving on the 28th. Can I take you out before I go? ☕", 'Yes', true, false);
+
+            if (isFirebaseReady && sessionDocRef) {
+                try {
+                    await setDoc(sessionDocRef, {
+                        status: 'completed',
+                        completedAt: new Date().toISOString()
+                    }, { merge: true });
+                } catch(e) {}
+            }
+        };
+
+        // ==========================================
+        // PIN & VAULT UI LOGIC (PIN: 4444)
+        // ==========================================
+        let enteredPin = '';
+
+        window.openPinModal = function() {
+            enteredPin = '';
+            updatePinDots();
+            document.getElementById('pin-error').textContent = '';
+            const modal = document.getElementById('pin-modal');
+            const card = document.getElementById('pin-card');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+        };
+
+        window.closePinModal = function() {
+            const modal = document.getElementById('pin-modal');
+            const card = document.getElementById('pin-card');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            card.classList.add('scale-95');
+            card.classList.remove('scale-100');
+        };
+
+        window.pressPin = function(digit) {
+            if (enteredPin.length < 4) {
+                enteredPin += digit;
+                updatePinDots();
+                if (enteredPin.length === 4) {
+                    validatePin();
+                }
+            }
+        };
+
+        window.deletePin = function() {
+            if (enteredPin.length > 0) {
+                enteredPin = enteredPin.slice(0, -1);
+                updatePinDots();
+                document.getElementById('pin-error').textContent = '';
+            }
+        };
+
+        function updatePinDots() {
+            const dots = document.getElementById('pin-dots').children;
+            for (let i = 0; i < 4; i++) {
+                if (i < enteredPin.length) {
+                    dots[i].className = 'w-3.5 h-3.5 rounded-full border-2 border-pink-500 bg-pink-500 shadow-sm transition-all scale-110';
+                } else {
+                    dots[i].className = 'w-3.5 h-3.5 rounded-full border-2 border-pink-300 bg-white transition-all';
+                }
+            }
+        }
+
+        function validatePin() {
+            if (enteredPin === VAULT_PIN) {
+                window.closePinModal();
+                window.openVaultDashboard();
+            } else {
+                const card = document.getElementById('pin-card');
+                const err = document.getElementById('pin-error');
+                err.textContent = 'Incorrect PIN 😾';
+                card.classList.add('shake');
+                setTimeout(() => {
+                    card.classList.remove('shake');
+                    enteredPin = '';
+                    updatePinDots();
+                    err.textContent = '';
+                }, 800);
+            }
+        }
+
+        // Support physical keyboard numbers when PIN modal is open
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('pin-modal');
+            if (modal && !modal.classList.contains('pointer-events-none')) {
+                if (e.key >= '0' && e.key <= '9') {
+                    pressPin(e.key);
+                } else if (e.key === 'Backspace') {
+                    deletePin();
+                } else if (e.key === 'Escape') {
+                    closePinModal();
+                }
+            }
+        });
+
+        window.openVaultDashboard = function() {
+            renderVaultSessions();
+            const modal = document.getElementById('vault-dashboard-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        };
+
+        window.closeVaultDashboard = function() {
+            const modal = document.getElementById('vault-dashboard-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        };
+
+        function renderVaultSessions() {
+            const sessions = getVaultSessions();
+            const countEl = document.getElementById('vault-session-count');
+            const listEl = document.getElementById('vault-sessions-list');
+
+            countEl.textContent = `${sessions.length} Session${sessions.length === 1 ? '' : 's'} Saved`;
+
+            if (sessions.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-10 px-4">
+                        <div class="text-4xl mb-3">📁🐾</div>
+                        <p class="text-gray-600 font-bold text-sm">No answers saved yet.</p>
+                        <p class="text-gray-400 text-xs mt-1">Whenever anyone opens the game and answers questions, their answers will be safely locked in this folder!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            sessions.forEach((s, idx) => {
+                const answerEntries = Object.entries(s.answers || {});
+                const isDone = s.status === 'completed';
+                const statusBadge = isDone 
+                    ? '<span class="px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-bold text-xs shadow-sm">🎉 Said YES!</span>'
+                    : '<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold text-xs shadow-sm">⏳ In Progress</span>';
+
+                html += `
+                    <div class="rounded-2xl border border-pink-200/80 bg-white/95 p-4 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <span class="font-bold text-gray-800 text-sm">Playthrough #${sessions.length - idx}</span>
+                                <span class="text-xs text-gray-400 ml-2">${s.date} at ${s.startedAt}</span>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        <div class="text-xs text-pink-600 font-semibold mb-2.5">
+                            ${answerEntries.length} of 10 questions answered
+                        </div>
+                        <div class="space-y-2 border-t border-pink-50 pt-2.5">
+                `;
+
+                if (answerEntries.length === 0) {
+                    html += `<p class="text-xs text-gray-400 italic">No questions answered yet.</p>`;
+                } else {
+                    answerEntries.forEach(([qId, item]) => {
+                        html += `
+                            <div class="text-xs bg-pink-50/60 rounded-xl p-2.5 border border-pink-100">
+                                <p class="text-gray-500 font-medium mb-1"><span class="font-bold text-pink-600">${qId.toUpperCase()}:</span> ${item.question}</p>
+                                <p class="font-bold text-gray-800">👉 ${item.answer} ${item.isDraft ? '<span class="text-[10px] text-gray-400 font-normal italic">(typing...)</span>' : ''}</p>
+                                <p class="text-[10px] text-gray-400 text-right mt-0.5">${item.time || ''}</p>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        window.exportVaultAsText = function() {
+            const sessions = getVaultSessions();
+            if (sessions.length === 0) {
+                alert('No answers saved to export yet!');
+                return;
+            }
+            let text = '===================================================================\n';
+            text += '                   🌸 SHRUTI\'S LOCKED VAULT ANSWERS 🐾\n';
+            text += '                   Password Protected (4444)\n';
+            text += '===================================================================\n';
+            text += `Exported: ${new Date().toLocaleString()}\n`;
+            text += `Total Sessions: ${sessions.length}\n`;
+            text += '===================================================================\n\n';
+
+            sessions.forEach((s, idx) => {
+                text += `>>> PLAYTHROUGH #${sessions.length - idx} (${s.date} at ${s.startedAt})\n`;
+                text += `Status: ${s.status === 'completed' ? 'COMPLETED (Said YES! 💖)' : 'In Progress'}\n`;
+                text += '-------------------------------------------------------------------\n';
+                Object.entries(s.answers || {}).forEach(([qId, item]) => {
+                    text += `[${qId.toUpperCase()}] ${item.question}\n`;
+                    text += `👉 Answer: ${item.answer}\n`;
+                    text += `Time: ${item.time || item.timestamp}\n\n`;
+                });
+                text += '===================================================================\n\n';
+            });
+
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `shruti_answers_vault_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
+        window.clearVaultHistory = function() {
+            if (confirm('Are you sure you want to clear all saved answers from this locked folder?')) {
+                localStorage.removeItem('shruti_vault_history');
+                localStorage.removeItem('shruti_active_session_id');
+                currentSessionId = null;
+                renderVaultSessions();
+            }
+        };
+
+        initTracking();
+    </script>
+
+    <!-- App Logic -->
+    <script>
+        // 10 Questions: 7 MCQ, 3 Text
+        const questions = [
+            { id: 'q1', type: 'mcq', text: "What's your ideal weekend vibe? 🛋️", options: ["Sleeping all day like a cat", "Endless shopping spree", "Exploring the city", "Binge-watching shows"] },
+            { id: 'q2', type: 'mcq', text: "Pick a cat mood. 😾", options: ["Cuddly & Clingy", "Grumpy but adorable", "3 AM Zoomies", "Judging everyone from afar"] },
+            { id: 'q3', type: 'text', text: "If you had unlimited money for one shopping spree, what is the very first thing you buy? 💳" },
+            { id: 'q4', type: 'mcq', text: "How do you feel about lame texting? 📱", options: ["It's the absolute worst", "Face-to-face is way better", "I communicate purely in reels", "Depends on the person"] },
+            { id: 'q5', type: 'text', text: "What is a fashion trend you secretly judge people for wearing? 👗👀" },
+            { id: 'q6', type: 'mcq', text: "Pick a date aesthetic. ✨", options: ["Cozy cafe corner", "Fancy dinner & dressing up", "Spontaneous street food hopping", "Late night long drive"] },
+            { id: 'q7', type: 'mcq', text: "If you were a cat, where would you sleep? 💤", options: ["On someone's laptop keyboard", "In an empty Amazon box", "Atop the highest shelf", "In a pile of warm fresh laundry"] },
+            { id: 'q8', type: 'text', text: "Be honest, what is the fastest way to get your attention? 🎯" },
+            { id: 'q9', type: 'mcq', text: "True or False: Having a good dressing sense is mandatory. 💅", options: ["True", "Obviously True", "100% True", "It's literally non-negotiable"] },
+            { id: 'q10', type: 'date', text: "I'm leaving on the 28th. Can I take you out before I go? ☕", options: ["Yes", "No"] }
+        ];
+
+        let currentIndex = 0;
+        const startScreen = document.getElementById('start-screen');
+        const quizContainer = document.getElementById('quiz-container');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const currentQNum = document.getElementById('current-q-num');
+
+        // Start Quiz (Creates fresh session for each playthrough)
+        document.getElementById('start-btn').addEventListener('click', () => {
+            currentSessionId = 'session_' + Date.now();
+            localStorage.setItem('shruti_active_session_id', currentSessionId);
+            transitionScreens(startScreen, quizContainer, () => {
+                progressContainer.classList.remove('opacity-0');
+                renderQuestion();
+            });
+        });
+
+        function updateProgress() {
+            currentQNum.textContent = currentIndex + 1;
+            const percentage = (currentIndex / questions.length) * 100;
+            progressBar.style.width = `${percentage}%`;
+        }
+
+        function renderQuestion() {
+            updateProgress();
+            const q = questions[currentIndex];
+            let html = `<h2 class="text-2xl font-bold mb-6 text-gray-800 leading-tight">${q.text}</h2>`;
+
+            if (q.type === 'mcq') {
+                html += `<div class="flex flex-col gap-3">`;
+                q.options.forEach(opt => {
+                    // Extract emojis for hover spin effect if present at end of string
+                    let textPart = opt;
+                    let emojiPart = '';
+                    const emojiMatch = opt.match(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g);
+                    if(emojiMatch && opt.endsWith(emojiMatch[emojiMatch.length-1])) {
+                        textPart = opt.substring(0, opt.lastIndexOf(emojiMatch[emojiMatch.length-1]));
+                        emojiPart = emojiMatch[emojiMatch.length-1];
+                    }
+
+                    html += `
+                        <button onclick="handleAnswer('${q.id}', \`${opt}\`)" 
+                                class="btn-opt w-full text-left px-5 py-4 rounded-2xl border-2 border-pink-100 bg-white hover:bg-pink-50 hover:border-pink-300 hover:shadow-md text-gray-700 font-semibold transition-all duration-200">
+                            ${textPart} <span class="emoji-spin">${emojiPart}</span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+            } 
+            else if (q.type === 'text') {
+                html += `
+                    <div class="flex flex-col gap-4">
+                        <input type="text" id="text-answer" placeholder="Type your answer..." class="w-full px-5 py-4 rounded-2xl font-medium shadow-inner" autocomplete="off">
+                        <button onclick="submitTextAnswer('${q.id}')" class="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 mt-2">
+                            Next 🐾
+                        </button>
+                    </div>
+                `;
+            } 
+            else if (q.type === 'date') {
+                // Final Question
+                html += `
+                    <div class="flex items-center justify-center gap-6 mt-8 h-24 relative">
+                        <button onclick="handleFinalYes()" class="px-8 py-4 rounded-full bg-gradient-to-r from-pink-400 to-purple-500 font-bold text-white shadow-lg hover:shadow-xl hover:scale-110 transition-transform duration-300 text-lg z-10">
+                            Yes 🐈
+                        </button>
+                        <button id="btn-no" class="px-8 py-4 rounded-full border-2 border-pink-200 bg-white text-pink-400 font-bold btn-dodge shadow-sm text-lg">
+                            No
+                        </button>
+                    </div>
+                `;
+            }
+
+            quizContainer.innerHTML = html;
+
+            if (q.type === 'text') {
+                const input = document.getElementById('text-answer');
+                setTimeout(() => input.focus(), 100);
+
+                // Auto-save live as she types her answer
+                let typingTimer;
+                input.addEventListener('input', (e) => {
+                    clearTimeout(typingTimer);
+                    const val = e.target.value.trim();
+                    if (val.length > 0 && window.logAnswer) {
+                        typingTimer = setTimeout(() => {
+                            window.logAnswer(q.id, q.text, val, false, true);
+                        }, 400);
+                    }
+                });
+
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') submitTextAnswer(q.id);
+                });
+            }
+
+            if (q.type === 'date') {
+                setupAggressiveDodging();
+            }
+        }
+
+        window.submitTextAnswer = function(qId) {
+            const val = document.getElementById('text-answer').value.trim();
+            if (val === '') return; // Force answer
+            handleAnswer(qId, val);
+        }
+
+        window.handleAnswer = function(qId, answer) {
+            if (window.logAnswer) {
+                const qText = questions.find(q => q.id === qId).text;
+                window.logAnswer(qId, qText, answer);
+            }
+
+            if (currentIndex < questions.length - 1) {
+                transitionScreens(quizContainer, quizContainer, () => {
+                    currentIndex++;
+                    renderQuestion();
+                });
+            }
+        }
+
+        window.handleFinalYes = function() {
+            if (window.logAnswer) {
+                window.logAnswer('q10', questions[9].text, 'Yes');
+                window.completeSession();
+            }
+            
+            progressBar.style.width = '100%';
+            setTimeout(() => progressContainer.style.opacity = '0', 500);
+
+            transitionScreens(quizContainer, quizContainer, () => {
+                quizContainer.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-7xl mb-4 animate-bounce">💖🐈</div>
+                        <h2 class="text-3xl font-extrabold mb-4 neon-text">Purr-fect!</h2>
+                        <p class="text-gray-600 font-medium text-lg leading-relaxed">
+                            Since you hate lame texting and I hate bad dressing sense, we'll figure out the food hopping details. See you before the 28th! ✨
+                        </p>
+                    </div>
+                `;
+            });
+        }
+
+        function setupAggressiveDodging() {
+            const btnNo = document.getElementById('btn-no');
+            
+            const dodge = (e) => {
+                // Prevent click on mobile completely
+                if(e && e.cancelable) e.preventDefault();
+                if(e && e.stopPropagation) e.stopPropagation();
+
+                // If first hover/touch, pop out of flow
+                if (btnNo.style.position !== 'fixed') {
+                    const rect = btnNo.getBoundingClientRect();
+                    btnNo.style.position = 'fixed';
+                    btnNo.style.width = `${rect.width}px`;
+                    btnNo.style.height = `${rect.height}px`;
+                    btnNo.style.margin = '0';
+                    btnNo.style.left = `${rect.left}px`;
+                    btnNo.style.top = `${rect.top}px`;
+                }
+
+                const padding = 20; 
+                const btnWidth = btnNo.offsetWidth;
+                const btnHeight = btnNo.offsetHeight;
+                
+                // Get window dimensions
+                const maxW = window.innerWidth - btnWidth - padding;
+                const maxH = window.innerHeight - btnHeight - padding;
+
+                // Move to a random spot on the screen
+                let newX = Math.random() * (maxW - padding) + padding;
+                let newY = Math.random() * (maxH - padding) + padding;
+
+                // Add random wild rotation (-90deg to +90deg)
+                let rot = (Math.random() - 0.5) * 180;
+
+                btnNo.style.left = `${newX}px`;
+                btnNo.style.top = `${newY}px`;
+                btnNo.style.transform = `rotate(${rot}deg) scale(0.9)`;
+                
+                // Bounce back scale quickly to make it look alive
+                setTimeout(() => {
+                    btnNo.style.transform = `rotate(${rot}deg) scale(1)`;
+                }, 100);
+            };
+
+            // Overload it with listeners so she can never catch it
+            btnNo.addEventListener('mouseover', dodge);
+            btnNo.addEventListener('mouseenter', dodge);
+            btnNo.addEventListener('touchstart', dodge, {passive: false});
+            btnNo.addEventListener('click', dodge); 
+        }
+
+        // Smooth transition utility
+        function transitionScreens(hideEl, showEl, callback) {
+            hideEl.classList.remove('q-visible');
+            hideEl.classList.add('q-hidden');
+            setTimeout(() => {
+                if (hideEl !== showEl) {
+                    hideEl.style.display = 'none';
+                    showEl.style.display = 'block';
+                }
+                if (callback) callback();
+                
+                // Small delay to ensure render before sliding up
+                requestAnimationFrame(() => {
+                    showEl.classList.remove('q-hidden');
+                    showEl.classList.add('q-visible');
+                });
+            }, 400); // matches CSS transition time
+        }
+    </script>
+</body>
+</html>
